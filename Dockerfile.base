@@ -1,6 +1,6 @@
 FROM buildpack-deps:bookworm
     LABEL org.opencontainers.image.authors="Joe Banks <joe@owlcorp.uk>"
-ARG PYENV_VERSION="v2.6.9"
+ARG PYENV_VERSION="v2.6.11"
 
 RUN apt-get -y update \
     && apt-get install -y --no-install-recommends \
