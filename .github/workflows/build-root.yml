@@ -30,7 +30,7 @@ jobs:
           push: true
           cache-to: type=inline
           cache-from: type=registry,ref=ghcr.io/python-discord/python-builds:builder-base
-          tags: python-discord/python-builds:builder-base
+          tags: ghcr.io/python-discord/python-builds:builder-base
 
   resolve-versions:
     runs-on: ubuntu-latest
