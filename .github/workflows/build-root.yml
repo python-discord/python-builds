@@ -9,7 +9,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  pyenv-version:
+    name: Find latest pyenv version
+    runs-on: ubuntu-latest
+    outputs:
+      pyenv_version: ${{ steps.get_pyenv_version.outputs.pyenv_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: pyenv/pyenv
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Get latest pyenv version
+        id: get_pyenv_version
+        run: |
+          git describe --abbrev=0 --tags
+
   build-base:
+    name: Build Python Builder Base
+    needs: pyenv-version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -33,9 +53,14 @@ jobs:
           push: true
           cache-to: type=inline
           cache-from: type=registry,ref=ghcr.io/python-discord/python-builds:builder-base
-          tags: ghcr.io/python-discord/python-builds:builder-base
+          build-args: |
+            PYENV_VERSION=${{ needs.pyenv-version.outputs.pyenv_version }}
+          tags: |
+            ghcr.io/python-discord/python-builds:builder-base
+            ghcr.io/python-discord/python-builds:builder-base-${{ needs.pyenv-version.outputs.pyenv_version }}
 
   resolve-versions:
+    name: Resolve Python Versions
     runs-on: ubuntu-latest
     needs: build-base
     outputs:
@@ -52,6 +77,7 @@ jobs:
           echo "resolved_versions=$resolved_versions" >> $GITHUB_OUTPUT
 
   build-versions:
+    name: Build Python Versions
     needs: [build-base, resolve-versions]
     strategy:
       matrix:
