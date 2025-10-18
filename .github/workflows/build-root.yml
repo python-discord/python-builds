@@ -33,6 +33,8 @@ jobs:
   build-base:
     name: Build Python Builder Base
     needs: pyenv-version
+    outputs:
+      resolved_versions: ${{ steps.resolve_versions.outputs.resolved_versions }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -61,16 +63,6 @@ jobs:
           tags: |
             ghcr.io/python-discord/python-builds:builder-base
             ghcr.io/python-discord/python-builds:builder-base-${{ needs.pyenv-version.outputs.pyenv_version }}
-
-  resolve-versions:
-    name: Resolve Python Versions
-    runs-on: ubuntu-latest
-    needs: build-base
-    outputs:
-      resolved_versions: ${{ steps.resolve_versions.outputs.resolved_versions }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
 
       - name: Run Docker container to resolve versions
         id: resolve_versions
