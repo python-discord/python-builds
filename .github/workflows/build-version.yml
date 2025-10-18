@@ -17,6 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Python ${{ inputs.version }}
 
+    concurrency:
+      group: build-python-${{ inputs.version }}
+      cancel-in-progress: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
