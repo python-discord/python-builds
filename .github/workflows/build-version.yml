@@ -41,6 +41,8 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          cache-to: type=inline
+          cache-from: type=registry,ref=ghcr.io/python-discord/python-builds:${{ inputs.tag }}
           tags: |
             ghcr.io/python-discord/python-builds:${{ inputs.tag }}
             ghcr.io/python-discord/python-builds:${{ inputs.tag }}-${{ steps.git-sha.outputs.sha }}
