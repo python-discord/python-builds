@@ -7,7 +7,7 @@ py_version="${1}"
 if [[ $py_version == *j ]]; then
     # Enable JIT mode when passed a version that ends with a "j"
     py_version="${py_version%j}"
-    PYTHON_CONFIGURE_OPTS+=" --enable-experimental-jit --with-tail-call-interp"
+    PYTHON_CONFIGURE_OPTS+=" --enable-experimental-jit"
 fi
 
 "${PYENV_ROOT}/plugins/python-build/bin/python-build" \
