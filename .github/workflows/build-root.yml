@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: '0 */12 * * *' # Every 12 hours
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   pyenv-version:
@@ -50,7 +53,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile.base
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' }}
           cache-to: type=inline
           cache-from: type=registry,ref=ghcr.io/python-discord/python-builds:builder-base
           build-args: |
