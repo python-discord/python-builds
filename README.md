@@ -33,6 +33,6 @@ A manual build can be triggered by going to the "Actions" tab and selecting the
 ## Built Images
 
 Built images are pushed to the GitHub Container Registry at
-[`ghcr.io/python-discord/python-builds`](ghcr.io/python-discord/python-builds). The
-images are tagged with the Python version they contain, e.g., `3.10.8` as well as the
-short tag, e.g., `3.10`.
+[`ghcr.io/python-discord/python-builds`](https://ghcr.io/python-discord/python-builds).
+The images are tagged with the Python version they contain, e.g., `3.10.8` as well as
+the short tag, e.g., `3.10`.
