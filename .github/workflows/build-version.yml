@@ -47,6 +47,10 @@ jobs:
           push: ${{ github.ref == 'refs/heads/main' }}
           cache-to: type=inline
           cache-from: type=registry,ref=ghcr.io/python-discord/python-builds:${{ inputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/python-discord/python-builds
+            org.opencontainers.image.description="Python ${{ inputs.version }} Docker image maintained by Python Discord."
+            org.opencontainers.image.licenses=MIT
           tags: |
             ghcr.io/python-discord/python-builds:${{ inputs.tag }}
             ghcr.io/python-discord/python-builds:${{ inputs.version }}
