@@ -4,7 +4,11 @@ This repository hosts prebuilt versions of Python that are used for the `!eval`
 functionality of [`python-discord/bot`](https://github.com/python-discord/bot).
 
 Built images contain a folder `/snekbin/` which contains the built Python
-interpreter (with a binary at `/snekbin/bin/python`).
+interpreter.
+
+The subdirectory that contains the interpreter varies by the requested version,
+for example, Python `3.14j` will have a binary at
+`/snekbin/python/3.14j/bin/python`.
 
 ## Adding new versions
 
