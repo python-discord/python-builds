@@ -73,10 +73,10 @@ jobs:
 
   build-versions:
     name: Build Python Versions
-    needs: [build-base, resolve-versions]
+    needs: build-base
     strategy:
       matrix:
-        version_info: ${{ fromJson(needs.resolve-versions.outputs.resolved_versions) }}
+        version_info: ${{ fromJson(needs.build-base.outputs.resolved_versions) }}
     uses: ./.github/workflows/build-version.yml
     with:
       version: ${{ matrix.version_info.version }}
