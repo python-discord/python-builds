@@ -1,0 +1,33 @@
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Specific version (major.minor.patch[suffix]) of Python to build"
+        required: true
+        type: string
+      tag:
+        description: "Version tag to apply to Docker image (e.g. 3.14, 3.14j)"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Python ${{ inputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/python-discord/python-builds:${{ inputs.tag }}
+          build-args: |
+            PYTHON_VERSION=${{ inputs.version }}

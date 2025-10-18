@@ -1,0 +1,23 @@
+# This file lists the versions of Python to build.
+
+# Version suffixes indicate the following:
+# - Any version suffixed with "t" will be "free-threaded" (see PEP703 and PEP779)
+# - Any version suffixed with "j" will have the JIT compiler enabled (see PEP744)
+
+# Only the major and minor version numbers are needed here. Patch versions will be
+# determined automatically based on the latest stable releases. Builds will run
+# periodically to pick up new patch releases.
+
+# If two entries have the same major.minor, the same suffix and both resolve to
+# the same patch version, they will be deduplicated.
+
+# As a result of automatic version resolution, there is no support for using old
+# patch versions.
+
+[config]
+versions = [
+    "3.14",
+    "3.14t",
+    "3.14j",
+    "3.13t",
+]
