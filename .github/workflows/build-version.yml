@@ -1,3 +1,5 @@
+name: Build Python Version
+
 on:
   workflow_call:
     inputs:
@@ -29,12 +31,18 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get Git commit short SHA
+        id: git-sha
+        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/python-discord/python-builds:${{ inputs.tag }}
+          tags: |
+            ghcr.io/python-discord/python-builds:${{ inputs.tag }}
+            ghcr.io/python-discord/python-builds:${{ inputs.tag }}-${{ steps.git-sha.outputs.sha }}
           build-args: |
             PYTHON_VERSION=${{ inputs.version }}
