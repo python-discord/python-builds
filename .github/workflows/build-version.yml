@@ -51,7 +51,7 @@ jobs:
             org.opencontainers.image.source=https://github.com/python-discord/python-builds
             org.opencontainers.image.description="Python ${{ inputs.version }} Docker image maintained by Python Discord."
             org.opencontainers.image.licenses=MIT
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description="Python ${{ inputs.version }} Docker image maintained by Python Discord."
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Python ${{ inputs.version }} Docker image maintained by Python Discord.
           tags: |
             ghcr.io/python-discord/python-builds:${{ inputs.tag }}
             ghcr.io/python-discord/python-builds:${{ inputs.version }}
