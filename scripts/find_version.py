@@ -46,7 +46,7 @@ if __name__ == "__main__":
     with versions_toml_path.open("rb") as f:
         versions_config = tomllib.load(f)
 
-    friendly_versions = versions_config["config"]["versions"]
+    friendly_versions = set(versions_config["config"]["versions"])
 
     resolved_versions = [
         {"tag": v, "version": resolve_version(v)} for v in friendly_versions
