@@ -57,6 +57,7 @@ jobs:
           file: ./Dockerfile.base
           push: ${{ github.ref == 'refs/heads/main' }}
           cache-to: type=inline
+          load: true
           cache-from: type=registry,ref=ghcr.io/python-discord/python-builds:builder-base
           build-args: |
             PYENV_VERSION=${{ needs.pyenv-version.outputs.pyenv_version }}
