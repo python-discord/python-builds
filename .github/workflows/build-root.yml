@@ -17,28 +17,42 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       pyenv_version: ${{ steps.get_pyenv_version.outputs.pyenv_version }}
+      resolved_versions: ${{ steps.resolve_versions.outputs.resolved_versions }}
     steps:
       - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Checkout pyenv
         uses: actions/checkout@v5
         with:
           repository: pyenv/pyenv
           fetch-depth: 0
           fetch-tags: true
+          path: pyenv
 
       - name: Get latest pyenv version
         id: get_pyenv_version
         run: |
+          cd pyenv
           echo "pyenv_version=$(git describe --abbrev=0 --tags)" >> $GITHUB_OUTPUT
+
+      - name: Resolve Python versions
+        id: resolve_versions
+        run: |
+          resolved_versions=$(PYENV_ROOT=./pyenv VERSIONS_TOML=./versions.toml python3 scripts/find_version.py)
+          # JSON array with objects containing "tag" and "version" keys
+          echo "resolved_versions=$resolved_versions" >> $GITHUB_OUTPUT
 
   build-base:
     name: Build Python Builder Base
     needs: pyenv-version
-    outputs:
-      resolved_versions: ${{ steps.resolve_versions.outputs.resolved_versions }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -50,14 +64,14 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Python builder base
+      - name: Build and push Python builder base (multi-platform)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile.base
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.ref == 'refs/heads/main' }}
           cache-to: type=inline
-          load: true
           cache-from: type=registry,ref=ghcr.io/python-discord/python-builds:builder-base
           build-args: |
             PYENV_VERSION=${{ needs.pyenv-version.outputs.pyenv_version }}
@@ -65,19 +79,12 @@ jobs:
             ghcr.io/python-discord/python-builds:builder-base
             ghcr.io/python-discord/python-builds:builder-base-${{ needs.pyenv-version.outputs.pyenv_version }}
 
-      - name: Run Docker container to resolve versions
-        id: resolve_versions
-        run: |
-          resolved_versions=$(docker run --mount type=bind,src=./versions.toml,dst=/versions.toml --rm ghcr.io/python-discord/python-builds:builder-base python3 /scripts/find_version.py)
-          # JSON array with objects containing "tag" and "version" keys
-          echo "resolved_versions=$resolved_versions" >> $GITHUB_OUTPUT
-
   build-versions:
     name: Build Python Versions
-    needs: build-base
+    needs: [pyenv-version, build-base]
     strategy:
       matrix:
-        version_info: ${{ fromJson(needs.build-base.outputs.resolved_versions) }}
+        version_info: ${{ fromJson(needs.pyenv-version.outputs.resolved_versions) }}
     uses: ./.github/workflows/build-version.yml
     with:
       version: ${{ matrix.version_info.version }}
