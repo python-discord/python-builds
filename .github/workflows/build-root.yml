@@ -90,3 +90,4 @@ jobs:
     with:
       version: ${{ matrix.version_info.version }}
       tag: ${{ matrix.version_info.tag }}
+      pyenv_version: ${{ needs.pyenv-version.outputs.pyenv_version }}

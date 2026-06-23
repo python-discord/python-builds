@@ -11,6 +11,10 @@ on:
         description: "Version tag to apply to Docker image (e.g. 3.14, 3.14j)"
         required: true
         type: string
+      pyenv_version:
+        description: "The pyenv version to use when building the builder-base stage"
+        required: true
+        type: string
 
 jobs:
   build:
@@ -63,3 +67,4 @@ jobs:
             ghcr.io/python-discord/python-builds:${{ inputs.tag }}-${{ steps.git-sha.outputs.sha }}
           build-args: |
             PYTHON_VERSION=${{ inputs.version }}
+            PYENV_VERSION=${{ inputs.pyenv_version }}
