@@ -68,7 +68,8 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./Dockerfile.base
+          file: ./Dockerfile
+          target: builder-base
           platforms: linux/amd64,linux/arm64
           push: ${{ github.ref == 'refs/heads/main' }}
           cache-to: type=inline
