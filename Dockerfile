@@ -1,5 +1,32 @@
-FROM ghcr.io/python-discord/python-builds:builder-base AS python-builder
-    LABEL org.opencontainers.image.authors="Joe Banks <joe@owlcorp.uk>"
+FROM buildpack-deps:bookworm AS builder-base
+LABEL org.opencontainers.image.authors="Joe Banks <joe@owlcorp.uk>, Chris Lovering <cj@owlcorp.uk>"
+
+ARG PYENV_VERSION="v2.6.11"
+
+RUN apt-get -y update \
+    && apt-get install -y --no-install-recommends \
+        libxmlsec1-dev \
+        tk-dev \
+        lsb-release \
+        software-properties-common \
+        gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Following guidance from https://github.com/python/cpython/blob/main/Tools/jit/README.md
+RUN curl -o /tmp/llvm.sh https://apt.llvm.org/llvm.sh \
+    && chmod +x /tmp/llvm.sh \
+    && /tmp/llvm.sh 19 \
+    && rm /tmp/llvm.sh
+
+ENV PYENV_ROOT=/pyenv \
+    PYTHON_CONFIGURE_OPTS='--disable-test-modules --enable-optimizations \
+        --with-lto --without-ensurepip'
+
+RUN git clone -b ${PYENV_VERSION} --depth 1 https://github.com/pyenv/pyenv.git $PYENV_ROOT
+
+COPY --link scripts scripts
+
+FROM builder-base AS python-builder
 
 ARG PYTHON_VERSION
 

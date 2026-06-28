@@ -11,50 +11,91 @@ on:
         description: "Version tag to apply to Docker image (e.g. 3.14, 3.14j)"
         required: true
         type: string
+      pyenv_version:
+        description: "The pyenv version to use when building the builder-base stage"
+        required: true
+        type: string
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    name: Build Python ${{ inputs.version }}
+    name: Build Python ${{ inputs.version }} (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
 
-    concurrency:
-      group: build-python-${{ inputs.version }}
-      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to Github Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get Git commit short SHA
-        id: git-sha
-        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Sanitize platform name
+        id: platform
+        run: echo "name=$(echo '${{ matrix.platform }}' | tr '/' '-')" >> $GITHUB_OUTPUT
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+      - name: Build and push platform image
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
+          target: python-builder
+          platforms: ${{ matrix.platform }}
           push: ${{ github.ref == 'refs/heads/main' }}
           cache-to: type=inline
-          cache-from: type=registry,ref=ghcr.io/python-discord/python-builds:${{ inputs.tag }}
+          cache-from: |
+            type=registry,ref=ghcr.io/python-discord/python-builds:builder-base
+            type=registry,ref=ghcr.io/python-discord/python-builds:${{ inputs.tag }}-${{ steps.platform.outputs.name }}
           labels: |
             org.opencontainers.image.source=https://github.com/python-discord/python-builds
             org.opencontainers.image.description="Python ${{ inputs.version }} Docker image maintained by Python Discord."
             org.opencontainers.image.licenses=MIT
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Python ${{ inputs.version }} Docker image maintained by Python Discord.
           tags: |
-            ghcr.io/python-discord/python-builds:${{ inputs.tag }}
-            ghcr.io/python-discord/python-builds:${{ inputs.version }}
-            ghcr.io/python-discord/python-builds:${{ inputs.tag }}-${{ steps.git-sha.outputs.sha }}
+            ghcr.io/python-discord/python-builds:${{ inputs.tag }}-${{ steps.platform.outputs.name }}
           build-args: |
             PYTHON_VERSION=${{ inputs.version }}
+            PYENV_VERSION=${{ inputs.pyenv_version }}
+
+  merge:
+    name: Merge ${{ inputs.version }} manifests
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Get Git commit short SHA
+        id: git-sha
+        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push multi-platform manifest
+        run: |
+          docker buildx imagetools create \
+            --annotation "index:org.opencontainers.image.source=https://github.com/python-discord/python-builds" \
+            --annotation "index:org.opencontainers.image.description=Python ${{ inputs.version }} Docker image maintained by Python Discord." \
+            --annotation "index:org.opencontainers.image.licenses=MIT" \
+            --tag ghcr.io/python-discord/python-builds:${{ inputs.tag }} \
+            --tag ghcr.io/python-discord/python-builds:${{ inputs.version }} \
+            --tag ghcr.io/python-discord/python-builds:${{ inputs.tag }}-${{ steps.git-sha.outputs.sha }} \
+            ghcr.io/python-discord/python-builds:${{ inputs.tag }}-linux-amd64 \
+            ghcr.io/python-discord/python-builds:${{ inputs.tag }}-linux-arm64

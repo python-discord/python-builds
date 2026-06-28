@@ -1,6 +1,7 @@
 from pathlib import Path
 import tomllib
 import json
+import os
 
 def resolve_version(friendly_version: str) -> str:
     """Resolve a friendly version like '3.10t' to an exact version like '3.10.12'."""
@@ -9,7 +10,8 @@ def resolve_version(friendly_version: str) -> str:
     is_jit = friendly_version.endswith('j')
     base_version = friendly_version.rstrip('jt')
 
-    pyenv_versions = Path("/pyenv/plugins/python-build/share/python-build")
+    pyenv_root = Path(os.environ.get("PYENV_ROOT", "/pyenv"))
+    pyenv_versions = pyenv_root / "plugins/python-build/share/python-build"
 
     matching_versions = []
 
@@ -38,7 +40,7 @@ def resolve_version(friendly_version: str) -> str:
     return latest_version
 
 if __name__ == "__main__":
-    versions_toml_path = Path("/") / "versions.toml"
+    versions_toml_path = Path(os.environ.get("VERSIONS_TOML", "/versions.toml"))
 
     if not versions_toml_path.exists():
         raise FileNotFoundError(f"Could not find versions.toml at expected path: {versions_toml_path}")
