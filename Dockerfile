@@ -15,7 +15,7 @@ RUN apt-get -y update \
 # Following guidance from https://github.com/python/cpython/blob/main/Tools/jit/README.md
 RUN curl -o /tmp/llvm.sh https://apt.llvm.org/llvm.sh \
     && chmod +x /tmp/llvm.sh \
-    && /tmp/llvm.sh 19 \
+    && /tmp/llvm.sh 22 \
     && rm /tmp/llvm.sh
 
 ENV PYENV_ROOT=/pyenv \
