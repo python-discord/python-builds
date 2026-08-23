@@ -1,7 +1,9 @@
-from pathlib import Path
-import tomllib
 import json
 import os
+from pathlib import Path
+
+import tomllib
+
 
 def resolve_version(friendly_version: str) -> str:
     """Resolve a friendly version like '3.10t' to an exact version like '3.10.12'."""
@@ -29,8 +31,14 @@ def resolve_version(friendly_version: str) -> str:
     if not matching_versions:
         raise ValueError(f"No matching versions found for base version '{base_version}'")
 
-    # Sort versions to get the latest
-    matching_versions.sort(key=lambda s: list(map(int, s.split('.'))))
+    def version_sort_key(s):
+        def part_key(p):
+            n, *rc = p.split('rc')
+            # rc suffix sorts below final release (no rc = inf)
+            return (int(n), int(rc[0]) if rc else float('inf'))
+        return [part_key(p) for p in s.split('.')]
+
+    matching_versions.sort(key=version_sort_key)
 
     latest_version = matching_versions[-1]
 
